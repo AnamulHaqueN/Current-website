@@ -8,23 +8,23 @@ const port = 8080;
 
 // MongoDB Connection
 main().then((res)=>{
-    console.log("mongodb is connected successfuly");
+    console.log("mongodb is connected successfully");
 }).catch((err) => {
     console.log(err);
 });
 async function main() {
     await mongoose.connect("mongodb://127.0.0.1:27017/hospital");
 }
+// Connect to whatsapp DB (separate connection)
+const whatsappConnection = mongoose.createConnection("mongodb://127.0.0.1:27017/whatsapp");
 
+// Load Chat model using whatsappConnection
+const Chat = whatsappConnection.model("Chat", require('./models/chat'));
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
-// Routes
-const appointmentRoute = require('./routes/appointments');
-app.use('/appointment', appointmentRoute);
 
 // Homepage route
 app.get('/', (req, res) => {
@@ -45,6 +45,12 @@ app.get('/pricing', (req, res) => {
 //contact route
 app.get('/contact', (req, res) => {
   res.render('contact');
+});
+
+app.get("/chats", async(req, res) => {
+    let chats = await Chat.find();
+    console.log(chats);
+    res.render("chat.ejs", {chats});
 });
 
 app.listen(port, () => {
